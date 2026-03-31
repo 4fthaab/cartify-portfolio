@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cartify — Smart AI-Powered Shopping Cart System</title>
+  <meta name="description"
+    content="Revolutionizing in-store shopping with AI-driven cart automation, real-time navigation, and seamless checkout." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    /* ======================================================
+       DESIGN TOKENS
+    ====================================================== */
+    :root {
+      --bg: #F8F5EF;
+      --bg-white: #FFFFFF;
+      --bg-card: #FFFFFF;
+      --bg-alt: #F0EDE5;
+      --bg-dark: #0D0D18;
+      --text: #0D0D0D;
+      --text-muted: #78787E;
+      --accent: #2D5BE3;
+      --accent-warm: #FF5E30;
+      --accent-lite: #EEF2FF;
+      --border: #E4DFD5;
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+      --shadow-lg: 0 16px 60px rgba(0, 0, 0, 0.13);
+      --r: 18px;
+      --r-sm: 10px;
+      --nav-h: 68px;
+    }
+
+    /* ======================================================
+       RESET & BASE
+    ====================================================== */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    ul {
+      list-style: none;
+    }
+
+    /* ======================================================
+       NAVBAR
+    ====================================================== */
+    #navbar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: var(--nav-h);
+      z-index: 900;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(20px, 5vw, 80px);
+      background: rgba(248, 245, 239, 0.82);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    #navbar.scrolled {
+      border-color: var(--border);
+      box-shadow: 0 2px 24px rgba(0, 0, 0, 0.07);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      /* Ensures logo icon and text are close */
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.4rem;
+      letter-spacing: -0.04em;
+      color: var(--text);
+      text-transform: uppercase;
+    }
+
+    /* This removes the natural space between the text and the <em> tag */
+    .nav-logo em {
+      color: var(--accent);
+      font-style: normal;
+      margin-left: -1px;
+      /* Tighter pull for "CARTIFY" feel */
+    }
+
+    .nav-logo-icon {
+      width: 34px;
+      height: 34px;
+      margin-right: 8px;
+      /* Gap between logo image and text */
+      display: block;
+    }
+
+    /* Links */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-links a {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 100px;
+      transition: color 0.2s, background 0.2s;
+      letter-spacing: 0.01em;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      background: var(--bg-alt);
+    }
+
+    .nav-cta {
+      background: var(--text) !important;
+      color: #fff !important;
+      padding: 9px 22px !important;
+      font-weight: 600 !important;
+      transition: background 0.22s, transform 0.22s !important;
+    }
+
+    .nav-cta:hover {
+      background: var(--accent) !important;
+      transform: translateY(-1px);
+    }
+
+    /* ======================================================
+       HERO
+    ====================================================== */
+    #hero {
+      min-height: 100vh;
+      padding: calc(var(--nav-h) + 80px) clamp(24px, 8vw, 160px) 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* soft radial glow */
+    #hero::before {
+      content: '';
+      position: absolute;
+      width: 900px;
+      height: 900px;
+      background: radial-gradient(circle, rgba(45, 91, 227, 0.09) 0%, transparent 65%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -60%);
+      pointer-events: none;
+    }
+
+    /* warm accent dot */
+    #hero::after {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(255, 94, 48, 0.07) 0%, transparent 65%);
+      bottom: 10%;
+      right: 5%;
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--accent-lite);
+      color: var(--accent);
+      padding: 6px 18px;
+      border-radius: 100px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeUp 0.65s 0.15s ease forwards;
+    }
+
+    .hero-badge::before {
+      content: '◆';
+      font-size: 7px;
+    }
+
+    .hero-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3.2rem, 8.5vw, 8.5rem);
+      font-weight: 800;
+      line-height: 0.93;
+      letter-spacing: -0.045em;
+      margin-bottom: 30px;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.35s ease forwards;
+    }
+
+    .hero-title .gline {
+      display: block;
+      background: linear-gradient(130deg, var(--accent) 0%, var(--accent-warm) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 1.8vw, 1.2rem);
+      color: var(--text-muted);
+      max-width: 600px;
+      line-height: 1.75;
+      margin-bottom: 44px;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.55s ease forwards;
+    }
+
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      justify-content: center;
+      margin-bottom: 70px;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.75s ease forwards;
+    }
+
+    .hero-pill {
+      background: var(--bg-white);
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 18px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .hero-pill:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .scroll-cue {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      opacity: 0;
+      animation: fadeUp 0.7s 1.1s ease forwards;
+    }
+
+    .scroll-cue-label {
+      font-size: 0.67rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .scroll-cue-bar {
+      width: 1.5px;
+      height: 44px;
+      background: linear-gradient(to bottom, var(--border), transparent);
+      animation: barPulse 2.2s ease-in-out infinite;
+    }
+
+    /* ======================================================
+       VIDEO SECTION
+    ====================================================== */
+    #video-section {
+      width: 100%;
+      background: var(--bg-dark);
+      position: relative;
+    }
+
+    .video-wrapper {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      max-height: 88vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .video-wrapper video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Video fallback tile */
+    .video-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: linear-gradient(135deg, #0D0D18 0%, #161630 60%, #0D0D18 100%);
+      color: rgba(255, 255, 255, 0.35);
+      font-size: 0.85rem;
+    }
+
+    .video-fallback img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      inset: 0;
+      opacity: 0.35;
+    }
+
+    .video-fallback-inner {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .video-play-ring {
+      width: 88px;
+      height: 88px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 30px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .video-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 48px clamp(20px, 5vw, 80px) 40px;
+      background: linear-gradient(to top, rgba(13, 13, 24, 0.92), transparent);
+      color: white;
+    }
+
+    .video-overlay h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.4rem, 3vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .video-overlay p {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.95rem;
+    }
+
+    /* ======================================================
+       STATS STRIP
+    ====================================================== */
+    .stats-strip {
+      background: var(--accent);
+      padding: 36px clamp(20px, 5vw, 80px);
+      display: flex;
+      justify-content: center;
+      gap: clamp(32px, 7vw, 100px);
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-val {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 800;
+      color: white;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .stat-key {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.65);
+      margin-top: 6px;
+    }
+
+    /* ======================================================
+       FEATURES
+    ====================================================== */
+    #features {
+      background: var(--bg);
+    }
+
+    .features-head {
+      text-align: center;
+      padding: clamp(80px, 10vw, 140px) clamp(24px, 5vw, 80px) clamp(60px, 8vw, 100px);
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 0.69rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 18px;
+    }
+
+    .section-label::before,
+    .section-label::after {
+      content: '';
+      width: 28px;
+      height: 1.5px;
+      background: var(--accent);
+      opacity: 0.5;
+    }
+
+    .section-heading {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 4.5vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.02;
+      letter-spacing: -0.035em;
+    }
+
+    .section-heading em {
+      font-style: normal;
+      background: linear-gradient(130deg, var(--accent), var(--accent-warm));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* --- EDITED: Feature row layout updates --- */
+    .feature-row {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      /* Image is 60% wider, Text is 40% */
+      min-height: 500px;
+    }
+
+    /* Reverse layout for even rows */
+    .feature-row:nth-child(even) {
+      grid-template-columns: 1fr 1.6fr;
+    }
+
+    .feature-row:nth-child(even) .feat-media {
+      order: 2;
+    }
+
+    .feature-row:nth-child(even) .feat-body {
+      order: 1;
+    }
+
+    .feat-media {
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-alt);
+      /* Changed to blend beautifully with screenshots */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .feat-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      /* Changed from cover to contain to stop any cropping */
+      transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      display: block;
+      padding: 24px;
+      /* Optional: gives the images a clean border padding inside the container */
+    }
+
+    .feature-row:hover .feat-media img {
+      transform: scale(1.04);
+    }
+
+    /* media variants */
+    .feat-duo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      height: 100%;
+      width: 100%;
+    }
+
+    .feat-duo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 12px;
+    }
+
+    .feat-duo img:first-child {
+      border-right: 2px solid rgba(0, 0, 0, 0.05);
+    }
+
+    /* Specific layout for the mobile duo to stack vertically */
+    .feat-duo-vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 40px;
+      /* Adds space around the stacked phones */
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      /* Optional: allows scrolling if images are very tall */
+    }
+
+    .feat-duo-vertical img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      border-radius: 12px;
+      /* Optional: adds a nice mobile-screen look */
+    }
+
+    .feat-carousel {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .feat-carousel img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+      padding: 24px;
+    }
+
+    .feat-carousel img.active {
+      opacity: 1;
+    }
+
+    .feat-body {
+      padding: clamp(40px, 5vw, 80px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: var(--bg-white);
+    }
+
+    .feature-row:nth-child(even) .feat-body {
+      background: var(--bg-alt);
+    }
+
+    .feat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 5rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.06em;
+      color: var(--border);
+      margin-bottom: 12px;
+    }
+
+    .feat-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 13px;
+      background: var(--accent-lite);
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .feat-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.4rem, 2.2vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .feat-desc {
+      color: var(--text-muted);
+      font-size: 0.97rem;
+      line-height: 1.78;
+      margin-bottom: 28px;
+    }
+
+    .feat-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .feat-chip {
+      background: var(--accent-lite);
+      color: var(--accent);
+      padding: 5px 14px;
+      border-radius: 100px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    /* ======================================================
+       DEVELOPERS SECTION
+    ====================================================== */
+    #developers {
+      background: var(--bg-dark);
+      padding: clamp(90px, 11vw, 150px) clamp(24px, 5vw, 80px);
+    }
+
+    #developers .section-label {
+      color: #8B9FF4;
+    }
+
+    #developers .section-label::before,
+    #developers .section-label::after {
+      background: #8B9FF4;
+    }
+
+    #developers .section-heading {
+      color: #FFFFFF;
+    }
+
+    .dev-head-sub {
+      color: rgba(255, 255, 255, 0.42);
+      font-size: 0.97rem;
+      margin-top: 14px;
+      max-width: 420px;
+    }
+
+    .dev-section-top {
+      margin-bottom: 72px;
+    }
+
+    .dev-row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: clamp(20px, 3.5vw, 52px);
+    }
+
+    /* Developer card */
+    .dev-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      width: 140px;
+    }
+
+    .dev-avatar-shell {
+      position: relative;
+      width: 120px;
+      height: 120px;
+    }
+
+    /* --- Style for Developer Images --- */
+    .dev-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /* Ensures faces aren't stretched */
+      border-radius: 50%;
+    }
+
+    .dev-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: white;
+      letter-spacing: -0.02em;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease;
+      border: 3px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dev-card:hover .dev-avatar {
+      transform: translateY(-8px) scale(1.06);
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+    }
+
+    .dev-linkedin-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(10, 102, 194, 0.88);
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .dev-card:hover .dev-linkedin-overlay {
+      opacity: 1;
+    }
+
+    .dev-linkedin-overlay svg {
+      width: 32px;
+      height: 32px;
+      fill: white;
+    }
+
+    .dev-info {
+      text-align: center;
+    }
+
+    .dev-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: white;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+
+    .dev-role {
+      font-size: 0.76rem;
+      color: rgba(255, 255, 255, 0.38);
+      font-weight: 400;
+      line-height: 1.4;
+    }
+
+    /* ======================================================
+       CONTACT SECTION
+    ====================================================== */
+    #contact {
+      background: var(--bg-white);
+      padding: clamp(90px, 11vw, 150px) clamp(24px, 5vw, 80px);
+    }
+
+    .contact-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: clamp(40px, 7vw, 110px);
+      align-items: start;
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    .contact-left {
+      padding-top: 6px;
+    }
+
+    .contact-intro-p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      line-height: 1.78;
+      margin: 18px 0 40px;
+      max-width: 400px;
+    }
+
+    .contact-facts {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .contact-fact {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .cf-icon {
+      width: 42px;
+      height: 42px;
+      background: var(--accent-lite);
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      color: var(--accent);
+    }
+
+    .cf-text strong {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .cf-text span {
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    /* Form */
+    .contact-form-box {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r);
+      padding: clamp(28px, 4vw, 52px);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 11px 15px;
+      background: var(--bg-white);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(45, 91, 227, 0.10);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 118px;
+    }
+
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .form-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--text);
+      color: white;
+      border: none;
+      border-radius: var(--r-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      transition: background 0.22s, transform 0.22s;
+      margin-top: 6px;
+    }
+
+    .form-submit:hover {
+      background: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .form-submit:active {
+      transform: translateY(0);
+    }
+
+    .form-submit:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .form-submit .arrow {
+      transition: transform 0.2s;
+    }
+
+    .form-submit:hover .arrow {
+      transform: translateX(3px);
+    }
+
+    /* ======================================================
+       FOOTER
+    ====================================================== */
+    footer {
+      background: var(--bg-dark);
+      padding: 36px clamp(24px, 5vw, 80px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: -0.03em;
+      color: white;
+    }
+
+    .footer-logo em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    footer p {
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+    }
+
+    .footer-links a {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.35);
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* ======================================================
+       ANIMATIONS & SCROLL REVEAL
+    ====================================================== */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(28px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes barPulse {
+
+      0%,
+      100% {
+        opacity: 0.25;
+      }
+
+      50% {
+        opacity: 0.9;
+      }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(38px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+
+    .reveal-l {
+      opacity: 0;
+      transform: translateX(-38px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+
+    .reveal-r {
+      opacity: 0;
+      transform: translateX(38px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+
+    .revealed {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+
+    .d1 {
+      transition-delay: .08s;
+    }
+
+    .d2 {
+      transition-delay: .18s;
+    }
+
+    .d3 {
+      transition-delay: .28s;
+    }
+
+    .d4 {
+      transition-delay: .38s;
+    }
+
+    .d5 {
+      transition-delay: .48s;
+    }
+
+    /* ======================================================
+       RESPONSIVE
+    ====================================================== */
+    @media (max-width: 900px) {
+
+      /* EDITED: Ensured media query overrides the even row rule too */
+      .feature-row,
+      .feature-row:nth-child(even) {
+        grid-template-columns: 1fr;
+        min-height: unset;
+      }
+
+      .feature-row:nth-child(even) .feat-media,
+      .feature-row:nth-child(even) .feat-body {
+        order: unset;
+      }
+
+      .feat-media {
+        min-height: 300px;
+      }
+
+      .contact-wrap {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-links a:not(.nav-cta) {
+        display: none;
+      }
+
+      .form-row-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .dev-card {
+        width: 100px;
+      }
+
+      .dev-avatar-shell,
+      .dev-avatar {
+        width: 90px;
+        height: 90px;
+      }
+
+      .dev-avatar {
+        font-size: 1.15rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav id="navbar">
+    <a href="#hero" class="nav-logo">
+      <img src="assets/logo.png" alt="Cartify Logo" class="nav-logo-icon">
+      CART<em>IFY</em>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#developers">Our Team</a></li>
+      <li><a href="#contact" class="nav-cta">Contact Us</a></li>
+    </ul>
+  </nav>
+
+  <section id="hero">
+    <div class="hero-badge">AI + IoT + Smart Retail</div>
+
+    <h1 class="hero-title">
+      The Future of<br>
+      <span class="gline">Shopping is Here.</span>
+    </h1>
+
+    <p class="hero-sub">
+      Revolutionizing in-store shopping with AI-driven cart automation,
+      real-time navigation, and seamless checkout — no queues, no hassle.
+    </p>
+
+    <div class="hero-pills">
+      <span class="hero-pill">YOLOv8 Detection</span>
+      <span class="hero-pill">A★ Navigation</span>
+      <span class="hero-pill">IoT Hardware</span>
+      <span class="hero-pill">FastAPI Backend</span>
+      <span class="hero-pill">Real-time Tracking</span>
+      <span class="hero-pill">Fraud Detection</span>
+      <span class="hero-pill">Seamless Checkout</span>
+    </div>
+  </section>
+
+
+
+  <div id="video-section">
+    <div class="video-wrapper">
+      <video autoplay muted loop playsinline poster="assets/images/live-demo.png" id="demoVideo">
+        <source src="assets/video/demo.mp4" type="video/mp4" />
+      </video>
+
+      <div class="video-fallback" id="videoFallback" style="display:none;">
+        <img src="assets/images/live-demo.png" alt="Cartify Live Demo" />
+        <div class="video-fallback-inner">
+          <div class="video-play-ring">▶</div>
+          <span>Cartify Live Demo</span>
+          <small style="opacity:.5; font-size:0.72rem;">Add your video to assets/video/demo.mp4</small>
+        </div>
+      </div>
+
+      <div class="video-overlay">
+        <h3>Watch Cartify in Action</h3>
+        <p>AI detection · Smart navigation · Seamless checkout — all in one ecosystem.</p>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="stats-strip">
+    <div class="stat reveal d1">
+      <div class="stat-val">0</div>
+      <div class="stat-key">Checkout Queues</div>
+    </div>
+    <div class="stat reveal d2">
+      <div class="stat-val">YOLOv8</div>
+      <div class="stat-key">AI Model</div>
+    </div>
+    <div class="stat reveal d3">
+      <div class="stat-val">A-Star</div>
+      <div class="stat-key">Path Finding</div>
+    </div>
+    <div class="stat reveal d4">
+      <div class="stat-val">360°</div>
+      <div class="stat-key">Store Coverage</div>
+    </div>
+  </div>
+
+
+  <section id="features">
+    <div class="features-head reveal">
+      <div class="section-label">What Cartify Does</div>
+      <h2 class="section-heading">
+        Engineered for the<br>
+        <em>Modern Retail Experience</em>
+      </h2>
+    </div>
+
+    <div class="feature-row reveal">
+      <div class="feat-media">
+        <img src="assets/images/cart-interface.png" alt="Cartify Smart Cart Display Interface" loading="lazy" />
+      </div>
+      <div class="feat-body">
+        <div class="feat-num">01</div>
+        <div class="feat-icon">🛒</div>
+        <h3 class="feat-title">Smart Cart Interface</h3>
+        <p class="feat-desc">
+          Cartify's onboard cart display shows your shopping list in real-time, automatically checking off items as they
+          land in the cart. Built on Raspberry Pi, the UI responds instantly — no phone required during shopping.
+        </p>
+        <div class="feat-chips">
+          <span class="feat-chip">Real-time Display</span>
+          <span class="feat-chip">Auto Billing</span>
+          <span class="feat-chip">QR Login</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-row reveal">
+      <div class="feat-media">
+        <img src="assets/images/live-demo.png" alt="YOLOv8 AI Item Detection Live Demo" loading="lazy" />
+      </div>
+      <div class="feat-body">
+        <div class="feat-num">02</div>
+        <div class="feat-icon">🤖</div>
+        <h3 class="feat-title">AI-Powered Item Detection</h3>
+        <p class="feat-desc">
+          Items are identified using YOLOv8 computer vision — but detection only triggers when the load cell registers a
+          weight change. This event-driven approach means no continuous camera processing, keeping the system efficient
+          and edge-device friendly.
+        </p>
+        <div class="feat-chips">
+          <span class="feat-chip">YOLOv8</span>
+          <span class="feat-chip">Load Cell Sensor</span>
+          <span class="feat-chip">Raspberry Pi</span>
+          <span class="feat-chip">Frame Differencing</span>
+          <span class="feat-chip">Weight Validation</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-row reveal">
+      <div class="feat-media">
+        <img src="assets/images/path-optimization.png" alt="A* Path Optimization Navigation Map" loading="lazy" />
+      </div>
+      <div class="feat-body">
+        <div class="feat-num">03</div>
+        <div class="feat-icon">🧭</div>
+        <h3 class="feat-title">Intelligent Path Navigation</h3>
+        <p class="feat-desc">
+          A grid-mapped store layout powers A★ pathfinding, while TSP optimization computes the shortest route through
+          all shopping list items. ArUco marker-based indoor positioning tracks the cart in real time — no GPS needed.
+        </p>
+        <div class="feat-chips">
+          <span class="feat-chip">A★ Pathfinding</span>
+          <span class="feat-chip">ArUco Markers</span>
+          <span class="feat-chip">Grid Mapping</span>
+          <span class="feat-chip">Indoor Tracking</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-row reveal">
+      <div class="feat-media">
+        <div class="feat-duo-vertical">
+          <img src="assets/images/mobile-1.png" alt="Cartify Mobile App - Shopping List" loading="lazy" />
+          <img src="assets/images/mobile-2.png" alt="Cartify Mobile App - Cart View" loading="lazy" />
+        </div>
+      </div>
+      <div class="feat-body">
+        <div class="feat-num">04</div>
+        <div class="feat-icon">📱</div>
+        <h3 class="feat-title">Mobile App Integration</h3>
+        <p class="feat-desc">
+          Shoppers create lists, scan a QR code to pair with their cart, then watch purchases update live. The app
+          handles everything from navigation guidance to digital payment — creating a fully connected shopping loop.
+        </p>
+        <div class="feat-chips">
+          <span class="feat-chip">QR Cart Pairing</span>
+          <span class="feat-chip">Live Sync</span>
+          <span class="feat-chip">Digital Payments</span>
+          <span class="feat-chip">UPI / Mock Gateway</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-row reveal">
+      <div class="feat-media">
+        <div class="feat-carousel" id="adminCarousel">
+          <img src="assets/images/admin-ui-1.png" alt="Admin Dashboard Overview" class="active" loading="lazy" />
+          <img src="assets/images/admin-ui-2.png" alt="Admin Analytics View" loading="lazy" />
+          <img src="assets/images/admin-ui-3.png" alt="Admin Inventory Management" loading="lazy" />
+        </div>
+      </div>
+      <div class="feat-body">
+        <div class="feat-num">05</div>
+        <div class="feat-icon">🏢</div>
+        <h3 class="feat-title">Comprehensive Admin Dashboard</h3>
+        <p class="feat-desc">
+          Store managers get real-time visibility into every cart, item, and transaction. The dashboard covers inventory
+          management, sales analytics, a visual store layout editor, and instant fraud alerts when weight-vision
+          discrepancies are detected.
+        </p>
+        <div class="feat-chips">
+          <span class="feat-chip">Inventory Control</span>
+          <span class="feat-chip">Sales Analytics</span>
+          <span class="feat-chip">Fraud Alerts</span>
+          <span class="feat-chip">Layout Editor</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section id="developers">
+    <div class="dev-section-top reveal">
+      <div class="section-label">The Builders</div>
+      <h2 class="section-heading">Meet the Team</h2>
+      <p class="dev-head-sub">The minds behind Cartify's AI, hardware, and software ecosystem.</p>
+    </div>
+
+    <div class="dev-row">
+
+      <a href="https://linkedin.com/in/afthaab-rahman" target="_blank" rel="noopener" class="dev-card reveal d1">
+        <div class="dev-avatar-shell">
+          <div class="dev-avatar">
+            <img src="assets/images/afthab-rahman.jpg" alt="Afthab Rahman">
+            <div class="dev-linkedin-overlay">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="dev-info">
+          <div class="dev-name">Afthab Rahman</div>
+          <div class="dev-role">Backend Developer & Team Lead</div>
+        </div>
+      </a>
+
+      <a href="https://linkedin.com/in/akshay-biju1557" target="_blank" rel="noopener" class="dev-card reveal d2">
+        <div class="dev-avatar-shell">
+          <div class="dev-avatar">
+            <img src="assets/images/akshay-biju.jpeg" alt="Akshay Biju">
+            <div class="dev-linkedin-overlay">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="dev-info">
+          <div class="dev-name">Akshay Biju</div>
+          <div class="dev-role">Mobile UI/UX Designer & Tester</div>
+        </div>
+      </a>
+
+      <a href="https://linkedin.com/in/athil-hisham" target="_blank" rel="noopener" class="dev-card reveal d3">
+        <div class="dev-avatar-shell">
+          <div class="dev-avatar">
+            <img src="assets/images/athil-hisham.jpeg" alt="Athil Hisham">
+            <div class="dev-linkedin-overlay">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="dev-info">
+          <div class="dev-name">Athil Hisham</div>
+          <div class="dev-role">Frontend Developer & Tester</div>
+        </div>
+      </a>
+
+      <a href="https://linkedin.com/in/thelha-sayed-692262346" target="_blank" rel="noopener"
+        class="dev-card reveal d4">
+        <div class="dev-avatar-shell">
+          <div class="dev-avatar">
+            <img src="assets/images/thelha-sayed.jpeg" alt="Thelha Sayed">
+            <div class="dev-linkedin-overlay">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="dev-info">
+          <div class="dev-name">Thelha Sayed</div>
+          <div class="dev-role">Dashboard and Authorisation Specialist</div>
+        </div>
+      </a>
+
+      <a href="https://www.researchgate.net/profile/Theresa-Jose" target="_blank" class="dev-card reveal d5">
+        <div class="dev-avatar-shell">
+          <div class="dev-avatar">
+            <img src="assets/images/theresa jose.jpg" alt="Prof. Theresa Jose">
+          </div>
+        </div>
+        <div class="dev-info">
+          <div class="dev-name">Prof. Theresa Jose</div>
+          <div class="dev-role">Project Guide</div>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+
+  <!-- =============================================
+     CONTACT SECTION
+============================================= -->
+  <section id="contact">
+    <div class="contact-wrap">
+
+      <div class="contact-left reveal-l">
+        <div class="section-label">Get In Touch</div>
+        <h2 class="section-heading">
+          Interested in<br><em>Cartify?</em>
+        </h2>
+        <p class="contact-intro-p">
+          Whether you're a retailer exploring modernisation, an evaluator, investor, or simply curious about the
+          technology — we'd love to hear from you.
+        </p>
+        <div class="contact-facts">
+          <div class="contact-fact">
+            <div class="cf-icon">📧</div>
+            <div class="cf-text">
+              <strong>Email</strong>
+              <a href="mailto:supermgenie@gmail.com">supermgenie@gmail.com</a>
+            </div>
+          </div>
+          <div class="contact-fact">
+            <div class="cf-icon">📍</div>
+            <div class="cf-text">
+              <strong>Location</strong>
+              <span>Muvattupuzha, Kerala, India</span>
+            </div>
+          </div>
+          <div class="contact-fact">
+            <div class="cf-icon" style="margin-top: 8px;">🏫</div>
+            <div class="cf-text">
+              <a href="https://icet.ac.in/computer-science-and-engineering-department/" target="_blank">
+                <strong>Department</strong>
+                <span>Computer Science &amp; Engineering,</span>
+                <p style="font-size: 14px;">Ilahia College of Enginneering & Technology</p>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal-r">
+        <form class="contact-form-box" id="contactForm">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="from_name">Your Name</label>
+              <input type="text" id="from_name" name="from_name" placeholder="Full name" required />
+            </div>
+            <div class="form-group">
+              <label for="from_email">Email Address</label>
+              <input type="email" id="from_email" name="from_email" placeholder="you@example.com" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="subject">Enquiry Type</label>
+            <select id="subject" name="subject">
+              <option value="">Select a topic…</option>
+              <option value="Retail Partnership">Retail Partnership</option>
+              <option value="Investment Enquiry">Investment Enquiry</option>
+              <option value="Technical Collaboration">Technical Collaboration</option>
+              <option value="Academic / Research">Academic / Research</option>
+              <option value="General Enquiry">General Enquiry</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" placeholder="Tell us about your interest in Cartify…"
+              required></textarea>
+          </div>
+          <button type="submit" class="form-submit" id="submitBtn">
+            <span>Send Message</span>
+            <span class="arrow">→</span>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </section>
+
+
+  <footer>
+    <div class="footer-logo">CART<em>IFY</em></div>
+    <p>© 2026 Cartify · Built with AI + IoT</p>
+    <nav class="footer-links">
+      <a href="#hero">Home</a>
+      <a href="#features">Features</a>
+      <a href="#developers">Team</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </footer>
+
+
+  <script>
+    /* ——— EmailJS ——— */
+    (function () { emailjs.init("7l4r57mf8s_MAANhp"); })();
+
+    const form = document.getElementById("contactForm");
+    const submitBtn = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      submitBtn.innerHTML = '<span>Sending…</span>';
+      submitBtn.disabled = true;
+
+      emailjs.sendForm("service_xb2kiyf", "template_kajie3h", this)
+        .then(function () {
+          Swal.fire({
+            icon: 'success',
+            title: 'Message Sent! 🎉',
+            text: 'Thank you for your interest in Cartify. We`ll get back to you soon.',
+            confirmButtonColor: '#2D5BE3',
+            background: '#fff',
+            color: '#0D0D0D',
+          });
+          form.reset();
+          submitBtn.innerHTML = '<span>Send Message</span><span class="arrow">→</span>';
+          submitBtn.disabled = false;
+        }, function () {
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops…',
+            text: 'Something went wrong. Please try again later.',
+            confirmButtonColor: '#d33',
+          });
+          submitBtn.innerHTML = '<span>Send Message</span><span class="arrow">→</span>';
+          submitBtn.disabled = false;
+        });
+    });
+
+    /* ——— Navbar scroll state ——— */
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 24);
+    }, { passive: true });
+
+    /* ——— Scroll reveal (IntersectionObserver) ——— */
+    const revealEls = document.querySelectorAll('.reveal, .reveal-l, .reveal-r');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.11, rootMargin: '0px 0px -40px 0px' });
+    revealEls.forEach(el => observer.observe(el));
+
+    /* ——— Admin carousel ——— */
+    (function () {
+      const carousel = document.getElementById('adminCarousel');
+      if (!carousel) return;
+      const slides = carousel.querySelectorAll('img');
+      let current = 0;
+      setInterval(() => {
+        slides[current].classList.remove('active');
+        current = (current + 1) % slides.length;
+        slides[current].classList.add('active');
+      }, 2600);
+    })();
+
+    /* ——— Video fallback ——— */
+    (function () {
+      const vid = document.getElementById('demoVideo');
+      const fallback = document.getElementById('videoFallback');
+      if (!vid || !fallback) return;
+
+      function showFallback() {
+        vid.style.display = 'none';
+        fallback.style.display = 'flex';
+      }
+      vid.addEventListener('error', showFallback);
+      // If no src resolves after 2 s, show fallback
+      setTimeout(() => {
+        if (vid.readyState === 0) showFallback();
+      }, 2000);
+    })();
+  </script>
+
+</body>
+
+</html>
