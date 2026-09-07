@@ -23,7 +23,7 @@
        DESIGN TOKENS
     ====================================================== */
     :root {
-      --bg: #F8F5EF;
+      --bg: #ebe5dd;
       --bg-white: #FFFFFF;
       --bg-card: #FFFFFF;
       --bg-alt: #F0EDE5;
@@ -33,7 +33,7 @@
       --accent: #2D5BE3;
       --accent-warm: #FF5E30;
       --accent-lite: #EEF2FF;
-      --border: #E4DFD5;
+      --border: #beb39d;
       --shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
       --shadow-lg: 0 16px 60px rgba(0, 0, 0, 0.13);
       --r: 18px;
@@ -222,11 +222,6 @@
       margin-bottom: 32px;
       opacity: 0;
       animation: fadeUp 0.65s 0.15s ease forwards;
-    }
-
-    .hero-badge::before {
-      content: '◆';
-      font-size: 7px;
     }
 
     .hero-title {
@@ -484,17 +479,28 @@
       background-clip: text;
     }
 
-    /* --- EDITED: Feature row layout updates --- */
     .feature-row {
       display: grid;
       grid-template-columns: 1.6fr 1fr;
-      /* Image is 60% wider, Text is 40% */
       min-height: 500px;
+      gap: 0;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
     }
+
+    .feature-row>.feat-media,
+    .feature-row>.feat-body {
+      margin: 0;
+      border: 0;
+      background: transparent;
+    }
+
 
     /* Reverse layout for even rows */
     .feature-row:nth-child(even) {
       grid-template-columns: 1fr 1.6fr;
+      background: var(--bg-alt);
     }
 
     .feature-row:nth-child(even) .feat-media {
@@ -519,60 +525,18 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      /* Changed from cover to contain to stop any cropping */
       transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       display: block;
-      padding: 24px;
-      /* Optional: gives the images a clean border padding inside the container */
+      padding: 0;
     }
 
     .feature-row:hover .feat-media img {
       transform: scale(1.04);
     }
 
-    /* media variants */
-    .feat-duo {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      height: 100%;
-      width: 100%;
-    }
-
-    .feat-duo img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      padding: 12px;
-    }
-
-    .feat-duo img:first-child {
-      border-right: 2px solid rgba(0, 0, 0, 0.05);
-    }
-
-    /* Specific layout for the mobile duo to stack vertically */
-    .feat-duo-vertical {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      padding: 40px;
-      /* Adds space around the stacked phones */
-      width: 100%;
-      height: 100%;
-      overflow-y: auto;
-      /* Optional: allows scrolling if images are very tall */
-    }
-
-    .feat-duo-vertical img {
-      width: 100%;
-      height: auto;
-      object-fit: contain;
-      border-radius: 12px;
-      /* Optional: adds a nice mobile-screen look */
-    }
-
     .feat-carousel {
       width: 100%;
-      height: 100%;
+      height: 80%;
       position: relative;
       display: flex;
       align-items: center;
@@ -586,7 +550,6 @@
       object-fit: contain;
       opacity: 0;
       transition: opacity 0.8s ease;
-      padding: 24px;
     }
 
     .feat-carousel img.active {
@@ -598,7 +561,7 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      background: var(--bg-white);
+      background: var(--bg-alt);
     }
 
     .feature-row:nth-child(even) .feat-body {
@@ -609,7 +572,7 @@
       font-family: 'Syne', sans-serif;
       font-size: 5rem;
       font-weight: 800;
-      line-height: 1;
+      /* line-height: 1; */
       letter-spacing: -0.06em;
       color: var(--border);
       margin-bottom: 12px;
@@ -1078,6 +1041,7 @@
       .feature-row:nth-child(even) {
         grid-template-columns: 1fr;
         min-height: unset;
+        gap: 0;
       }
 
       .feature-row:nth-child(even) .feat-media,
@@ -1089,9 +1053,71 @@
         min-height: 300px;
       }
 
+      .feature-row .feat-media {
+        min-height: 0;
+        height: 300px;
+        padding: 0;
+      }
+
+      .feature-row .feat-body {
+        padding: 0px 24px 55px;
+      }
+
+      .feature-row .feat-carousel {
+        width: 100%;
+        height: 100%;
+      }
+
+      .feature-row .feat-carousel img {
+        padding: 0;
+      }
+
       .contact-wrap {
         grid-template-columns: 1fr;
       }
+    }
+
+    /* Video mute/unmute button */
+    .mute-btn {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      z-index: 10;
+
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 50%;
+
+      background: rgba(13, 13, 24, 0.65);
+      backdrop-filter: blur(10px);
+
+      color: white;
+      font-size: 20px;
+
+      cursor: pointer;
+
+      display: grid;
+      place-items: center;
+
+      transition: all 0.5s ease;
+    }
+
+    .mute-btn:hover {
+      background: rgba(45, 91, 227, 0.9);
+      transform: scale(1.08);
+    }
+
+    html {
+      scroll-snap-type: y proximity;
+    }
+
+    #video-section,
+    #developers,
+    #contact,
+    .feature-row {
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
     }
 
     @media (max-width: 680px) {
@@ -1158,20 +1184,23 @@
     </div>
   </section>
 
-
-
   <div id="video-section">
     <div class="video-wrapper">
-      <video autoplay muted loop playsinline poster="assets/images/live-demo.png" id="demoVideo">
-        <source src="assets/video/demo.mp4" type="video/mp4" />
+
+      <video autoplay muted loop playsinline id="demoVideo">
+        <source src="assets/video/Cartify Promo.mp4" type="video/mp4" />
       </video>
+
+      <button class="mute-btn" id="muteBtn" aria-label="Unmute video">
+        🔇
+      </button>
 
       <div class="video-overlay">
         <p>Watch Cartify in Action</p>
       </div>
+
     </div>
   </div>
-
 
   <div class="stats-strip">
     <div class="stat reveal d1">
@@ -1268,8 +1297,9 @@
 
     <div class="feature-row reveal">
       <div class="feat-media">
-        <div class="feat-duo-vertical">
-          <img src="assets/images/mobile-1.png" alt="Cartify Mobile App - Shopping List" loading="lazy" />
+        <div class="feat-carousel" id="mobileCarousel">
+          <img src="assets/images/mobile-1.png" alt="Cartify Mobile App - Shopping List" loading="lazy"
+            class="active" />
           <img src="assets/images/mobile-2.png" alt="Cartify Mobile App - Cart View" loading="lazy" />
         </div>
       </div>
@@ -1565,18 +1595,173 @@
     }, { threshold: 0.11, rootMargin: '0px 0px -40px 0px' });
     revealEls.forEach(el => observer.observe(el));
 
-    /* ——— Admin carousel ——— */
+    /* ——— carousel ——— */
     (function () {
-      const carousel = document.getElementById('adminCarousel');
-      if (!carousel) return;
-      const slides = carousel.querySelectorAll('img');
-      let current = 0;
-      setInterval(() => {
-        slides[current].classList.remove('active');
-        current = (current + 1) % slides.length;
-        slides[current].classList.add('active');
-      }, 2600);
+
+      function setupCarousel(carouselId) {
+        const carousel = document.getElementById(carouselId);
+
+        if (!carousel) return;
+
+        const slides = carousel.querySelectorAll('img');
+
+        if (slides.length < 2) return;
+
+        let current = 0;
+        let isHolding = false;
+        let holdTimer = null;
+
+        function nextSlide() {
+          slides[current].classList.remove('active');
+          current = (current + 1) % slides.length;
+          slides[current].classList.add('active');
+        }
+
+        // Automatic movement every 2.6 seconds
+        const autoPlay = setInterval(() => {
+          if (!isHolding) {
+            nextSlide();
+          }
+        }, 2600);
+
+        // Press / touch and hold
+        carousel.addEventListener('pointerdown', () => {
+          isHolding = true;
+        });
+
+        // Release
+        carousel.addEventListener('pointerup', () => {
+          isHolding = false;
+
+        });
+
+
+        carousel.addEventListener('pointercancel', () => {
+
+          isHolding = false;
+
+        });
+
+
+        carousel.addEventListener('pointerleave', () => {
+
+          isHolding = false;
+
+        });
+
+
+        // Single click / tap → next image
+        carousel.addEventListener('click', () => {
+
+          if (!isHolding) {
+            nextSlide();
+          }
+
+        });
+
+      }
+
+
+      // Mobile App carousel
+      setupCarousel('mobileCarousel');
+
+      // Admin Dashboard carousel
+      setupCarousel('adminCarousel');
+
     })();
+
+
+    const demoVideo = document.getElementById("demoVideo");
+    const muteBtn = document.getElementById("muteBtn");
+
+    if (demoVideo && muteBtn) {
+
+      // First load = muted
+      let userWantsSound = false;
+
+      function updateMuteButton() {
+        if (demoVideo.muted) {
+          muteBtn.textContent = "🔇";
+          muteBtn.setAttribute("aria-label", "Unmute video");
+        } else {
+          muteBtn.textContent = "🔊";
+          muteBtn.setAttribute("aria-label", "Mute video");
+        }
+      }
+
+      updateMuteButton();
+
+
+      // Manual mute / unmute
+      muteBtn.addEventListener("click", function (event) {
+
+        event.stopPropagation();
+
+        if (demoVideo.muted) {
+          // User wants sound
+          userWantsSound = true;
+          demoVideo.muted = false;
+        } else {
+          // User wants mute
+          userWantsSound = false;
+          demoVideo.muted = true;
+        }
+
+        updateMuteButton();
+
+        demoVideo.play().catch(() => {
+          // Browser may block playback
+        });
+      });
+
+
+      // Watch video visibility
+      const videoObserver = new IntersectionObserver(
+        (entries) => {
+
+          entries.forEach((entry) => {
+
+            if (entry.isIntersecting) {
+
+              // Video is visible again
+              // Restore user's previous preference
+              demoVideo.muted = !userWantsSound;
+
+              updateMuteButton();
+
+              demoVideo.play().catch(() => {
+
+                // If browser blocks autoplay with sound,
+                // fall back to muted autoplay
+                if (userWantsSound) {
+                  demoVideo.muted = true;
+                  updateMuteButton();
+                }
+
+              });
+
+            } else {
+
+              // Video left the screen
+              demoVideo.pause();
+
+              // Temporarily mute while away
+              demoVideo.muted = true;
+
+              updateMuteButton();
+            }
+
+          });
+
+        },
+        {
+          threshold: 0.5
+        }
+      );
+
+      videoObserver.observe(document.getElementById("video-section"));
+    }
+
 
     /* ——— Video fallback ——— */
     (function () {
